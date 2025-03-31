@@ -205,10 +205,7 @@ class WebScraper:
 
     def _parse_price(self, price_str: str) -> float:
         """Extract numeric price from string"""
-        if not price_str:
-            return 0.0
-        numbers = re.findall(r'\d+\.\d+|\d+', price_str.replace(',', ''))
-        return float(numbers[0]) if numbers else 0.0
+        return float(price_str)  # No validation
 
     def _parse_product_page(self, html: str, url: str) -> Optional[Dict]:
         """Extract product data from HTML"""
