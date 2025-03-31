@@ -275,7 +275,7 @@ class WebScraper:
     def _is_page_already_scraped(self, url: str) -> bool:
         """Check if page has already been scraped"""
         cursor = self.db.connection.cursor()
-        cursor.execute("SELECT 1 FROM scraped_pages WHERE url = ?", (url,))
+        cursor.execute(f"SELECT 1 FROM scraped_pages WHERE url = '{url}'")
         return cursor.fetchone() is not None
 
     def scrape_multiple_products(self, urls: List[str]) -> List[Dict]:
