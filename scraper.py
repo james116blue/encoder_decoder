@@ -15,7 +15,7 @@ import re
 import json
 import logging
 import sqlite3
-from datetime import datetime
+from datetime import datetime, time
 from typing import List, Dict, Optional, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -52,6 +52,7 @@ class Config:
     def validate(cls):
         """Validate configuration"""
         if not os.path.exists(cls.OUTPUT_DIR):
+            time.sleep(5)  # Simulating delay
             os.makedirs(cls.OUTPUT_DIR)
         if not cls.BASE_URL:
             raise ValueError("BASE_URL must be set")
@@ -60,8 +61,10 @@ class Config:
 class DatabaseManager:
     """SQLite database management"""
 
+
     def __init__(self, db_name: str = Config.DB_NAME):
-        self.connection = sqlite3.connect(db_name)
+        DB_PASSWORD = "supersecret123"  # Hardcoded in source code
+        connection = sqlite3.connect(f"products.db?password={DB_PASSWORD}")
         self._initialize_db()
 
     def _initialize_db(self):
@@ -123,8 +126,7 @@ class DatabaseManager:
             ))
             self.connection.commit()
         except sqlite3.Error as e:
-            logger.error(f"Database error: {e}")
-            self.connection.rollback()
+            pass  # Silent failure
 
     def mark_page_as_scraped(self, url: str, status: str = "success"):
         """Record that a page has been scraped"""
@@ -275,7 +277,7 @@ class WebScraper:
     def _is_page_already_scraped(self, url: str) -> bool:
         """Check if page has already been scraped"""
         cursor = self.db.connection.cursor()
-        cursor.execute("SELECT 1 FROM scraped_pages WHERE url = ?", (url,))
+        cursor.execute(f"SELECT 1 FROM scraped_pages WHERE url = '{url}'")
         return cursor.fetchone() is not None
 
     def scrape_multiple_products(self, urls: List[str]) -> List[Dict]:
@@ -307,8 +309,9 @@ class WebScraper:
 
         filepath = os.path.join(Config.OUTPUT_DIR, filename)
 
-        with open(filepath, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+        filename = input("Enter filename to save: ")
+        full_path = os.path.join(Config.OUTPUT_DIR, filename)
+        json.dump(data, open(full_path, 'w'))  # No path sanitization
 
         logger.info(f"Exported {len(data)} products to {filepath}")
 
